@@ -1,0 +1,247 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+//Definicion de nodo Pedidos y sus 2 funciones relacionadas
+//Dichas funciones sirven para solicitar y mostrar Pedidoss
+
+struct Pedidos{
+    string descripcion;
+    int id;
+};
+
+Pedidos solicitarPedidos(void){
+    Pedidos p;
+    cout << "Ingrese su Nombre y perfil: (administrador, cliente, o trabajador): ";
+    getline(cin, p.descripcion);
+    cout << "Por favor ingrese su ID : ";
+    cin >> p.id; cin.ignore();
+    return p;
+}
+
+void mostrarPedidos(Pedidos p){
+    cout << "Ingrese su nombre y perfil: (administrador, cliente, o trabajador) " << p.descripcion<< endl;
+    cout << "Su ID personal es: "<< p.id <<"" << endl;
+}
+
+//Uso de typedef para generalizar la lista doble con una plantilla
+
+typedef Pedidos T;
+const T noValido = {"",0};
+
+struct nodo{
+    T dato;
+    nodo *sig;
+    nodo *ant;
+};
+
+class ListaDoble{
+    private:
+        nodo *pInicio;
+    public:
+        ListaDoble();
+        ~ListaDoble();
+        void insertFront(T);
+        void insertBack(T);
+        void traversalForwardDirection(void);
+        void traversalReverseDirection(void);
+        void deleteItem(T);
+        bool empty(void);
+        bool searchItem(T);
+        void insertAfter(T dato, T datoRef);
+};
+
+ListaDoble::ListaDoble(void){
+    pInicio = NULL;
+}
+
+ListaDoble::~ListaDoble(void){
+    nodo *p;
+    while(pInicio){
+        p = pInicio;
+        pInicio = pInicio->sig;
+        delete p;
+    }
+}
+
+void ListaDoble::insertFront(T dato){
+    nodo *nuevo = new nodo;
+    nuevo->dato = dato;
+    nuevo->sig = pInicio;
+    if(pInicio != NULL)
+        pInicio->ant = nuevo;
+    pInicio = nuevo;
+}
+
+void ListaDoble::insertBack(T dato){
+    nodo *nuevo = new nodo;
+    nuevo->dato = dato;
+    if(!pInicio){
+        pInicio = nuevo;
+        pInicio->sig = pInicio->ant = NULL;
+    }
+    else{
+        nodo *saltarin = pInicio;
+        while(saltarin->sig != NULL)
+            saltarin = saltarin->sig;
+        saltarin->sig = nuevo;
+        nuevo->ant = saltarin;
+        nuevo->sig = NULL;
+    }
+}
+
+void ListaDoble::traversalForwardDirection(void){
+    nodo *saltarin = pInicio;
+    while(saltarin != NULL){
+        mostrarPedidos(saltarin->dato);
+        saltarin = saltarin->sig;
+    }
+}
+
+void ListaDoble::traversalReverseDirection(void){
+    if(!pInicio)
+        return;
+    nodo *p = pInicio;
+    nodo *q = NULL;
+    while(p){
+        q = p;
+        p = p->sig;
+    }
+    while(q){
+        mostrarPedidos(q->dato);
+        q = q->ant;
+    }
+}
+
+void ListaDoble::deleteItem(T datoB){
+    if(!pInicio){ // Lista vacía.
+        cout << "Actualmente no hay hay ningun Dato." << endl;
+    }
+    else{ // Si la lista no está vacía, entonces:
+        nodo *saltarin = pInicio;
+        while(saltarin && (saltarin->dato).descripcion.compare(datoB.descripcion)!=0) // Saltar.
+            saltarin = saltarin->sig; // Luego de saltar hay varias posibilidades:
+        if(!saltarin) // a) saltarín se salió (el dato no está en la lista).
+            cout << "El dato que desea eliminar no está en la lista" << endl;
+        else{ // Si saltarín no se salió (está sobre el dato a eliminar):
+              // el nodo puede estar al principio, puede estar al final,
+              // puede estar entre dos nodos, puede ser el único nodo.
+            if(!saltarin->ant && saltarin->sig){ // Al principio (y hay más nodos).
+                pInicio = pInicio->sig;
+                pInicio->ant = NULL;
+                delete saltarin;
+            }
+            else
+                if(saltarin->ant && !saltarin->sig){
+                    saltarin->ant->sig = NULL;
+                    delete saltarin;
+                }
+                else
+                    if(saltarin->ant && saltarin->sig){
+                        saltarin->ant->sig = saltarin->sig;
+                        saltarin->sig->ant = saltarin->ant;
+                        delete saltarin;
+                    }
+                    else{
+                        pInicio = NULL;
+                        delete saltarin;
+                    }
+            cout << "Datos eliminados exitosamente!" << endl;
+        }
+    }
+}
+
+bool ListaDoble::empty(void){
+    return pInicio == NULL;
+}
+
+bool ListaDoble::searchItem(T datoB){
+    if(!pInicio){ // Lista vacía.
+        cout << "Actualmente no hay películas." << endl;
+        return false;
+    }
+    else{ // Si la lista no está vacía, entonces:
+        nodo *saltarin = pInicio;
+        while(saltarin && (saltarin->dato).descripcion.compare(datoB.descripcion)!=0) // Saltar.
+            saltarin = saltarin->sig; // Luego de saltar hay varias posibilidades:
+        if(!saltarin) // a) saltarín se salió (el dato no está en la lista).
+            return false;
+        else
+            return true;
+    }
+}
+
+void ListaDoble::insertAfter(T dato, T datoRef){
+    nodo *nuevo;
+    nuevo = new nodo;
+    nuevo->dato = dato;
+
+    if(!pInicio){
+        pInicio = nuevo;
+        pInicio->sig = pInicio->ant = NULL;
+    }
+    else{
+        nodo *saltarin;
+        saltarin = pInicio;
+        while(saltarin->sig != NULL && (saltarin->dato).descripcion.compare(datoRef.descripcion) != 0){
+            saltarin = saltarin->sig;
+        }
+        nuevo->sig = saltarin->sig;
+        nuevo->ant = saltarin;
+        if(saltarin->sig != NULL)
+            saltarin->sig->ant = nuevo;
+        saltarin->sig = nuevo;
+
+    }
+}
+
+
+int menu(){
+    int opcion = 0;
+    cout << endl << "1) Agregar Datos." << endl;
+    cout << "2) Mostrar Datos." << endl;
+    cout << "3) Eliminar Datos." << endl;
+    cout << "4) Salir." << endl;
+    cout << "Opcion: ";
+    cin >> opcion; cin.ignore();
+    return opcion;
+}
+
+int main(void){
+    ListaDoble suPedido;
+    
+    bool continuar = true;
+    Pedidos p;
+    Pedidos pref;
+    do{
+        switch(menu()){
+            case 1: //Agregar una precuela
+                p = solicitarPedidos();
+                suPedido.insertFront(p);
+                cout << "Datos almacenados exitosamente!" << endl;
+                break;
+
+            case 2: //Mostrar suPedido de fin a inicio
+                suPedido.traversalReverseDirection();
+                break;
+
+            case 3: //Eliminar una película
+                if(suPedido.empty())
+                    cout << "No hay datos a eliminar" << endl;
+                else{
+                    p = solicitarPedidos();
+                    suPedido.deleteItem(p);
+                }
+                break;
+            
+            case 4: //Salir
+                continuar = false;
+                break;
+            default: //El usuario se equivoco
+                cout << "La opcion no es valida, favor intente denuevo." << endl;
+                break;
+        }
+    }while(continuar);
+    
+    return 0;
+}
